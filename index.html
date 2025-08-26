@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ROV 5v5 Random Team</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;700&display=swap');
+
+  body {
+    font-family: 'Kanit', sans-serif;
+    text-align: center;
+    background: url('1756228489359.jpg') no-repeat center center fixed;
+    background-size: cover;
+    color: #fff;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* ชั้น overlay มืด */
+  body::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(2px);
+    z-index: 0;
+  }
+
+  h1, button, #teams {
+    position: relative;
+    z-index: 1;
+  }
+
+  h1 {
+    font-size: 3em;
+    font-weight: 700;
+    text-shadow: 0 0 10px #ffdf00, 0 0 20px rgba(255, 223, 0, 0.5);
+    margin-bottom: 20px;
+  }
+
+  button {
+    padding: 12px 30px;
+    font-size: 1.2em;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    border-radius: 50px;
+    background: linear-gradient(135deg, #ff7e5f, #feb47b);
+    color: #fff;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+  }
+
+  button:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+  }
+
+  #teams {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 30px;
+    width: 100%;
+    max-width: 1200px;
+    margin-top: 30px;
+  }
+
+  .team {
+    width: 320px;
+    background: rgba(0,0,0,0.65);
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .team:hover {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+  }
+
+  .team h2 {
+    font-size: 1.8em;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-shadow: 0 0 8px #ffdf00;
+  }
+
+  .hero {
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .hero:last-child {
+    border-bottom: none;
+  }
+
+  .position {
+    font-weight: 700;
+    color: #ffdf00;
+    font-size: 1.1em;
+    margin-bottom: 5px;
+  }
+</style>
+</head>
+<body>
+<h1>ROV 5v5 Random Team</h1>
+<button id="randomBtn" onclick="toggleRandom()">เริ่มสุ่ม</button>
+
+<audio id="clickSound" src="click.mp3" preload="auto"></audio>
+
+<div id="teams">
+  <div class="team" id="team1"><h2>ทีม 1</h2></div>
+  <div class="team" id="team2"><h2>ทีม 2</h2></div>
+  <div class="team" id="team3"><h2>ทีม 3</h2></div>
+  <div class="team" id="team4"><h2>ทีม 4</h2></div>
+</div>
+
+<script>
+const heroes = [
+  "Airi", "Allain", "Alice", "Aleister", "Amily", "Annette", "Aoi", "Arthur", "Arum", "Ata",
+  "Astrid", "Baldum", "Batman", "Bright", "Butterfly", "Capheny", "Chaugnar", "Cresht", "D'Arcy", "Diao Chan",
+  "Dirak", "Elsu", "Eland'orr", "Enzo", "Errol", "Fennik", "Florentino", "Gildur", "Grakk", "Hayate",
+  "Ignis", "Ilumia", "Ishar", "Jinna", "Kahlii", "Kaine", "Keera", "Kil'Groth", "Krixi", "Kriknak",
+  "Krizzix", "Laville", "Liliana", "Lindis", "Lumburr", "Lu Bu", "Mganga", "Maloch", "Max", "Mina",
+  "Moren", "Murad", "Nakroth", "Natalya", "Omega", "Omen", "Paine", "Pang", "Peura", "Preyta",
+  "Quillen", "Raz", "Richter", "Riktor", "Rouie", "Ryoma", "Sephera", "Skud", "Slimz", "Sinestrea",
+  "Superman", "Superm", "Taara", "Tel'Annas", "TeeMee", "Thorne", "Toro", "Tulen", "Valhein", "Veres",
+  "Violet", "Volkath", "Wiro", "Wonder Woman", "Wukong", "Yan", "Yena", "Y'bneth", "Yorn", "Zanis",
+  "Zata", "Zephys", "Zill", "Zip", "Zuka", "Lorion", "Iggy", "Ishikawa", "Siren", "Aya",
+  "Helen", "Ming", "Qi", "Thane"
+];
+
+const positions = ["ออฟเลน", "แครี่", "เมจ", "ป่า", "โรม"];
+
+let intervalId = null;
+let isRandomizing = false;
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+function generateTeams() {
+  const shuffled = shuffle([...heroes]);
+  const teams = [
+    shuffled.slice(0, 5),
+    shuffled.slice(5, 10),
+    shuffled.slice(10, 15),
+    shuffled.slice(15, 20)
+  ];
+
+  for (let t = 1; t <= 4; t++) {
+    const teamDiv = document.getElementById('team' + t);
+    teamDiv.innerHTML = `<h2>ทีม ${t}</h2>`;
+    const pos = shuffle([...positions]);
+    teams[t - 1].forEach((hero, i) => {
+      const div = document.createElement('div');
+      div.className = 'hero';
+      div.innerHTML = `<div class="position">${pos[i]}</div>${hero}`;
+      teamDiv.appendChild(div);
+    });
+  }
+}
+
+function toggleRandom() {
+  const clickSound = document.getElementById("clickSound");
+  clickSound.currentTime = 0;
+  clickSound.play();
+
+  if (isRandomizing) {
+    clearInterval(intervalId);
+    isRandomizing = false;
+    document.getElementById("randomBtn").textContent = "เริ่มสุ่ม";
+  } else {
+    intervalId = setInterval(generateTeams, 100);
+    isRandomizing = true;
+    document.getElementById("randomBtn").textContent = "หยุดสุ่ม";
+  }
+}
+</script>
+</body>
+</html>
